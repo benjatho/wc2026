@@ -29,10 +29,10 @@ body{background:#080C10;color:#E6EDF3;font-family:system-ui,sans-serif;min-heigh
 .mbox{background:#161B22;border:1px solid #30363D;border-radius:7px;overflow:hidden;margin:2px 0}
 .mbox.sw{border-color:#F5C842;background:linear-gradient(135deg,#161B22,rgba(245,200,66,0.06))}
 .mbox.lv{border-color:#3FB950}
-.mbox.tb{opacity:0.35}
+.mbox.tb{border-style:dashed;border-color:#30363D}
 .tr{display:flex;align-items:center;gap:3px;padding:5px 5px}
 .tr.wn{background:rgba(63,185,80,0.1)}
-.tr.ls{opacity:0.5;background:rgba(248,81,73,0.12);text-decoration:line-through}
+.tr.ls{opacity:0.4;background:rgba(248,81,73,0.08)}
 .tflag{font-size:13px;width:16px;text-align:center;flex-shrink:0}
 .tname{flex:1;font-size:10px;font-weight:700;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tsc{font-size:12px;font-weight:800;color:#F5C842;width:13px;text-align:center;flex-shrink:0}
@@ -248,8 +248,10 @@ function getMatch(t1,t2){
 }
 function mbox(home,away,data,dateStr,sched){
   if(!home||home==="TBD"){
-    var tbdTime=sched?sched.ukTime+(sched.venue?" &middot; "+sched.venue:""):dateStr||"TBD";
-    return '<div class="mbox tb"><div class="tr"><span class="tname" style="color:#8B949E">TBD</span></div><div class="mst sc">'+tbdTime+"</div></div>";
+    var tbdTime=sched?sched.ukTime+(sched.venue?" &middot; "+sched.venue:""):dateStr||"";
+    var tbdInner='<div class="tr"><span style="font-size:9px;color:#8B949E;width:16px">&#8987;</span><span class="tname" style="color:#8B949E">TBD</span></div><hr class="mdiv"><div class="tr"><span style="font-size:9px;color:#8B949E;width:16px">&#8987;</span><span class="tname" style="color:#8B949E">TBD</span></div>';
+    if(tbdTime)tbdInner+='<div class="mst sc">'+tbdTime+"</div>";
+    return '<div class="mbox tb">'+tbdInner+"</div>";
   }
   var d=data||{home:home,away:away,hG:null,aG:null,status:"SCHEDULED",winner:null};
   var hO=own(home),aO=own(away),sw=hO||aO;
