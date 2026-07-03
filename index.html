@@ -562,6 +562,12 @@ function renderBracket(){
 
 }
 
+function pill(s){
+  if(!s)return '<span class="sp spg">Group Stage</span>';
+  if(s.eliminated)return '<span class="sp spo">OUT: '+s.stage+"</span>";
+  var c={1:"spg",2:"sp2",3:"sp3",4:"sp4",5:"sp5",6:"sp6",7:"sp6"}[s.stageOrder]||"spg";
+  return '<span class="sp '+c+'">'+s.stage+"</span>";
+}
 function renderTeams(){
   var html="";
   Object.keys(ADULT).forEach(function(api){
