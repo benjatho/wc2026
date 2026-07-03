@@ -167,7 +167,7 @@ async function loadData(){
     matches=md.matches||[];scorers=sd.scorers||[];std=buildStd(matches);
     document.getElementById("upd").textContent="Updated "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
     document.getElementById("ldg").style.display="none";
-    renderAll();showTab(window._tab||"bracket");
+    try{renderAll();}catch(e){document.getElementById("err").style.display="block";document.getElementById("err").textContent="Render error: "+e.message+" at "+e.stack?.split("\n")[0];}showTab(window._tab||"bracket");
   }catch(e){
     document.getElementById("ldg").style.display="none";
     const el=document.getElementById("err");el.style.display="block";el.textContent="\u26A0\uFE0F Failed: "+e.message;
