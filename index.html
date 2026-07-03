@@ -37,7 +37,7 @@ body{background:#080C10;color:#E6EDF3;font-family:system-ui,sans-serif;min-heigh
 .tname{flex:1;font-size:10px;font-weight:700;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tsc{font-size:12px;font-weight:800;color:#F5C842;width:13px;text-align:center;flex-shrink:0}
 .tsc.dm{color:#8B949E}
-.own{font-size:8px;background:#F5C842;color:#080C10;border-radius:3px;padding:1px 3px;font-weight:800;flex-shrink:0}
+.own{font-size:7px;background:#F5C842;color:#080C10;border-radius:3px;padding:1px 2px;font-weight:800;flex-shrink:0;max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mdiv{border:none;border-top:1px solid #30363D;margin:0}
 .mst{font-size:8px;color:#8B949E;text-align:center;padding:2px 4px;background:#1C2330}
 .mst.lv{color:#3FB950;font-weight:700}
@@ -188,6 +188,21 @@ async function loadData(){
     showErr("Failed to load: "+e.message);
   }
 }
+function getScheduled(stage, matchday){
+  // Find a match by stage and matchday even if teams are TBD
+  for(var i=0;i<matches.length;i++){
+    var m=matches[i];
+    if(m.stage===stage && m.matchday===matchday){
+      var ukTime="";
+      if(m.utcDate){
+        var d=new Date(m.utcDate);
+        ukTime=d.toLocaleString("en-GB",{timeZone:"Europe/London",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+" BST";
+      }
+      return{ukTime:ukTime,venue:m.venue||""};
+    }
+  }
+  return null;
+}
 function getMatch(t1,t2){
   var m=null;
   for(var i=0;i<matches.length;i++){
@@ -206,10 +221,19 @@ function getMatch(t1,t2){
     else if(aG>hG)winner=a;
     else if(m.score&&m.score.penalties){winner=m.score.penalties.home>m.score.penalties.away?h:a;}
   }
-  return{home:h,away:a,hG:hG,aG:aG,status:m.status,winner:winner,hPen:m.score&&m.score.penalties&&m.score.penalties.home,aPen:m.score&&m.score.penalties&&m.score.penalties.away};
+  var ukTime="";
+  if(m.utcDate){
+    var d=new Date(m.utcDate);
+    ukTime=d.toLocaleString("en-GB",{timeZone:"Europe/London",weekday:"short",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+" BST";
+  }
+  var venue=m.venue||"";
+  return{home:h,away:a,hG:hG,aG:aG,status:m.status,winner:winner,hPen:m.score&&m.score.penalties&&m.score.penalties.home,aPen:m.score&&m.score.penalties&&m.score.penalties.away,ukTime:ukTime,venue:venue};
 }
-function mbox(home,away,data,dateStr){
-  if(!home||home==="TBD"){return '<div class="mbox tb"><div class="tr"><span class="tname" style="color:#8B949E">TBD</span></div></div>';}
+function mbox(home,away,data,dateStr,sched){
+  if(!home||home==="TBD"){
+    var tbdTime=sched?sched.ukTime+(sched.venue?" &middot; "+sched.venue:""):dateStr||"TBD";
+    return '<div class="mbox tb"><div class="tr"><span class="tname" style="color:#8B949E">TBD</span></div><div class="mst sc">'+tbdTime+"</div></div>";
+  }
   var d=data||{home:home,away:away,hG:null,aG:null,status:"SCHEDULED",winner:null};
   var hO=own(home),aO=own(away),sw=hO||aO;
   var lv=d.status==="IN_PLAY"||d.status==="PAUSED",fin=d.status==="FINISHED";
@@ -225,6 +249,8 @@ function mbox(home,away,data,dateStr){
   var st="";
   if(lv)st='<div class="mst lv">LIVE</div>';
   else if(fin)st='<div class="mst">FT'+(d.hPen?" (p)":"")+"</div>";
+  else if(d.ukTime)st='<div class="mst sc">'+d.ukTime+(d.venue?" &middot; "+d.venue:"")+"</div>";
+  else if(sched&&sched.ukTime)st='<div class="mst sc">'+sched.ukTime+(sched.venue?" &middot; "+sched.venue:"")+"</div>";
   else if(dateStr)st='<div class="mst sc">'+dateStr+"</div>";
   return '<div class="'+cls+'"><div class="tr'+(hW?" wn":hL?" ls":"")+'"><span class="tflag">'+gf(home)+'</span><span class="tname">'+gt(home)+"</span>"+hOEl+hSc+hP+'</div><hr class="mdiv"><div class="tr'+(aW?" wn":aL?" ls":"")+'"><span class="tflag">'+gf(away)+'</span><span class="tname">'+gt(away)+"</span>"+aOEl+aSc+aP+"</div>"+st+"</div>";
 }
@@ -258,13 +284,16 @@ function renderBracket(){
   function wsf(i){return sfd[i]&&sfd[i].winner||null;}
   var ft=[wsf(0),wsf(1)],fd=ft[0]&&ft[1]?getMatch(ft[0],ft[1]):null;
   var lR32=r32d.slice(0,8).map(function(m){return mbox(m.h,m.a,m.data,m.dt);});
-  var lR16=r16t.slice(0,4).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",r16d[i],"Jul 4-6");});
-  var lQF=qft.slice(0,2).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",qfd[i],"Jul 9-10");});
-  var lSF=mbox(sft[0][0]||"TBD",sft[0][1]||"TBD",sfd[0],"Jul 13");
+  var r16sched=[getScheduled("LAST_16",1),getScheduled("LAST_16",2),getScheduled("LAST_16",3),getScheduled("LAST_16",4),getScheduled("LAST_16",5),getScheduled("LAST_16",6),getScheduled("LAST_16",7),getScheduled("LAST_16",8)];
+  var lR16=r16t.slice(0,4).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",r16d[i],"Jul 4-6",r16sched[i]);});
+  var qfsched=[getScheduled("QUARTER_FINALS",1),getScheduled("QUARTER_FINALS",2),getScheduled("QUARTER_FINALS",3),getScheduled("QUARTER_FINALS",4)];
+  var lQF=qft.slice(0,2).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",qfd[i],"Jul 9-10",qfsched[i]);});
+  var sfsched=[getScheduled("SEMI_FINALS",1),getScheduled("SEMI_FINALS",2)];
+  var lSF=mbox(sft[0][0]||"TBD",sft[0][1]||"TBD",sfd[0],"Jul 13",sfsched[0]);
   var rR32=r32d.slice(8).map(function(m){return mbox(m.h,m.a,m.data,m.dt);});
-  var rR16=r16t.slice(4).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",r16d[i+4],"Jul 4-6");});
-  var rQF=qft.slice(2).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",qfd[i+2],"Jul 9-10");});
-  var rSF=mbox(sft[1][0]||"TBD",sft[1][1]||"TBD",sfd[1],"Jul 14");
+  var rR16=r16t.slice(4).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",r16d[i+4],"Jul 4-6",r16sched[i+4]);});
+  var rQF=qft.slice(2).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",qfd[i+2],"Jul 9-10",qfsched[i+2]);});
+  var rSF=mbox(sft[1][0]||"TBD",sft[1][1]||"TBD",sfd[1],"Jul 14",sfsched[1]);
   var finH=mbox(ft[0]||"TBD",ft[1]||"TBD",fd,"Jul 19");
   var W=130,C=12;
   function col(lbl,content,w){return'<div class="scol" style="width:'+w+'px"><div class="shdr">'+lbl+"</div>"+content+"</div>";}
