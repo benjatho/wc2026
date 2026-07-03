@@ -32,7 +32,7 @@ body{background:#080C10;color:#E6EDF3;font-family:system-ui,sans-serif;min-heigh
 .mbox.tb{opacity:0.35}
 .tr{display:flex;align-items:center;gap:3px;padding:5px 5px}
 .tr.wn{background:rgba(63,185,80,0.1)}
-.tr.ls{opacity:0.32}
+.tr.ls{opacity:0.5;background:rgba(248,81,73,0.12);text-decoration:line-through}
 .tflag{font-size:13px;width:16px;text-align:center;flex-shrink:0}
 .tname{flex:1;font-size:10px;font-weight:700;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tsc{font-size:12px;font-weight:800;color:#F5C842;width:13px;text-align:center;flex-shrink:0}
@@ -130,6 +130,15 @@ function own(n){
   return null;
 }
 var matches=[],scorers=[],std={};
+// Group stage eliminations - hardcoded as API cannot auto-detect these
+// Teams eliminated in GROUP STAGE only (R32+ eliminations auto-detected)
+var GROUP_ELIM = [
+  // Adult teams
+  "Turkey",
+  // Family teams - group stage only
+  "Iran","Qatar","Uzbekistan","Iraq","South Korea","Panama","Saudi Arabia","Tunisia","Haiti","Czechia","Scotland","Jordan"
+];
+
 function buildStd(ms){
   var s={};
   var all=Object.keys(ADULT);
@@ -155,6 +164,14 @@ function buildStd(ms){
       if(loser&&s[loser])s[loser].eliminated=true;
     }
   });
+  // Apply hardcoded group stage eliminations
+  for(var gi=0;gi<GROUP_ELIM.length;gi++){
+    var gt2=GROUP_ELIM[gi];
+    if(s[gt2]&&s[gt2].stageOrder<=1){
+      s[gt2].eliminated=true;
+      s[gt2].stage="Group Stage";
+    }
+  }
   return s;
 }
 function showErr(msg){
