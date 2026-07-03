@@ -161,8 +161,8 @@ async function loadData(){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   try{
     const[md,sd]=await Promise.all([
-      fetch("/.netlify/functions/matches?path="+encodeURIComponent("/competitions/WC/matches")).then(r=>r.json()),
-      fetch("/.netlify/functions/matches?path="+encodeURIComponent("/competitions/WC/scorers?limit=10")).then(r=>r.json()),
+      fetch("/.netlify/functions/matches?path="+encodeURIComponent("/competitions/WC/matches")).then(r=>{if(!r.ok)throw new Error("matches "+r.status);return r.json();}),
+      fetch("/.netlify/functions/matches?path="+encodeURIComponent("/competitions/WC/scorers?limit=10")).then(r=>{if(!r.ok)throw new Error("scorers "+r.status);return r.json();}),
     ]);
     matches=md.matches||[];scorers=sd.scorers||[];std=buildStd(matches);
     document.getElementById("upd").textContent="Updated "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
@@ -335,7 +335,7 @@ function renderPrizes(){
   document.getElementById("prz").innerHTML=
     '<div class="stitle">\uD83D\uDC64 Individual Prizes</div>'+P.map(pc).join("")
     +'<div class="stitle">\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66 Family Prizes</div>'+FP.map(pc).join("")
-    +'<div class="pot"><div style="font-size:11px;color:var(--muted)">Total Prize Pot</div><div style="font-family:Bebas Neue,sans-serif;font-size:38px;color:var(--gold)">\u00A3190</div><div style="font-size:10px;color:var(--muted)">18 adults \u00D7 \u00A310 + Wayne's wildcard \u00A310</div></div>';
+    +'<div class="pot"><div style="font-size:11px;color:var(--muted)">Total Prize Pot</div><div style="font-family:Bebas Neue,sans-serif;font-size:38px;color:var(--gold)">\u00A3190</div><div style="font-size:10px;color:var(--muted)">18 adults \u00D7 \u00A310 + Wayne’s wildcard \u00A310</div></div>';
 }
 function renderFamilies(){
   document.getElementById("fam").innerHTML=Object.entries(FAM).map(([f,ts])=>{
