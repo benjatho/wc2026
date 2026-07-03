@@ -179,7 +179,10 @@ async function loadData(){
     std=buildStd(matches);
     document.getElementById("upd").textContent="Updated "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
     hideLdg();
-    renderAll();
+    try{renderBracket();}catch(e){showErr("Bracket error: "+e.message);return;}
+    try{renderTeams();}catch(e){showErr("Teams error: "+e.message);return;}
+    try{renderPrizes();}catch(e){showErr("Prizes error: "+e.message);return;}
+    try{renderFamilies();}catch(e){showErr("Families error: "+e.message);return;}
     showTab(window._tab||"bracket");
   }catch(e){
     showErr("Failed to load: "+e.message);
@@ -355,8 +358,11 @@ function renderPrizes(){
   ];
   function pc(p){
     var cl=p.c?"cf":p.w?"ld":"";
-    var st=p.c?'<span class="ps cf">&#9989;</span>':p.w?'<span class="ps ld">&#9203;</span>':"";
-    return '<div class="pc'+(cl?" "+cl)+'"><span style="font-size:22px">'+p.e+'</span><div style="flex:1"><div style="font-size:12px;font-weight:700">'+p.n+'</div><div style="font-size:10px;color:'+(p.w?"#E6EDF3":"#8B949E")+';margin-top:2px">'+(p.w||"Not yet decided")+'</div></div>'+st+'<div style="font-size:16px;font-weight:800;color:#F5C842;flex-shrink:0">'+p.pot+"</div></div>";
+    var st=p.c?"<span class=\"ps cf\">&#9989;</span>":p.w?"<span class=\"ps ld\">&#9203;</span>":"";
+    var wcolor=p.w?"#E6EDF3":"#8B949E";
+    var wtxt=p.w||"Not yet decided";
+    var pcls="pc"+(cl?" "+cl:"");
+    return "<div class=\""+pcls+"\"><span style=\"font-size:22px\">"+p.e+"</span><div style=\"flex:1\"><div style=\"font-size:12px;font-weight:700\">"+p.n+"</div><div style=\"font-size:10px;color:"+wcolor+";margin-top:2px\">"+wtxt+"</div></div>"+st+"<div style=\"font-size:16px;font-weight:800;color:#F5C842;flex-shrink:0\">"+p.pot+"</div></div>";
   }
   document.getElementById("prz").innerHTML=
     '<div class="stl">Individual Prizes</div>'+P.map(pc).join("")+
