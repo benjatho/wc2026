@@ -302,46 +302,266 @@ function renderBracket(){
   var sfd=sft.map(function(t){return t[0]&&t[1]?getMatch(t[0],t[1]):null;});
   function wsf(i){return sfd[i]&&sfd[i].winner||null;}
   var ft=[wsf(0),wsf(1)],fd=ft[0]&&ft[1]?getMatch(ft[0],ft[1]):null;
-  var lR32=r32d.slice(0,8).map(function(m){return mbox(m.h,m.a,m.data,m.dt);});
-  var r16sched=[getScheduled("LAST_16",1),getScheduled("LAST_16",2),getScheduled("LAST_16",3),getScheduled("LAST_16",4),getScheduled("LAST_16",5),getScheduled("LAST_16",6),getScheduled("LAST_16",7),getScheduled("LAST_16",8)];
-  var lR16=r16t.slice(0,4).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",r16d[i],"Jul 4-6",r16sched[i]);});
-  var qfsched=[getScheduled("QUARTER_FINALS",1),getScheduled("QUARTER_FINALS",2),getScheduled("QUARTER_FINALS",3),getScheduled("QUARTER_FINALS",4)];
-  var lQF=qft.slice(0,2).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",qfd[i],"Jul 9-10",qfsched[i]);});
+
+  var r16sched=[
+    getScheduled("LAST_16",1),getScheduled("LAST_16",2),getScheduled("LAST_16",3),getScheduled("LAST_16",4),
+    getScheduled("LAST_16",5),getScheduled("LAST_16",6),getScheduled("LAST_16",7),getScheduled("LAST_16",8)
+  ];
+  var qfsched=[
+    getScheduled("QUARTER_FINALS",1),getScheduled("QUARTER_FINALS",2),
+    getScheduled("QUARTER_FINALS",3),getScheduled("QUARTER_FINALS",4)
+  ];
   var sfsched=[getScheduled("SEMI_FINALS",1),getScheduled("SEMI_FINALS",2)];
-  var lSF=mbox(sft[0][0]||"TBD",sft[0][1]||"TBD",sfd[0],"Jul 13",sfsched[0]);
-  var rR32=r32d.slice(8).map(function(m){return mbox(m.h,m.a,m.data,m.dt);});
-  var rR16=r16t.slice(4).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",r16d[i+4],"Jul 4-6",r16sched[i+4]);});
-  var rQF=qft.slice(2).map(function(t,i){return mbox(t[0]||"TBD",t[1]||"TBD",qfd[i+2],"Jul 9-10",qfsched[i+2]);});
-  var rSF=mbox(sft[1][0]||"TBD",sft[1][1]||"TBD",sfd[1],"Jul 14",sfsched[1]);
-  var finH=mbox(ft[0]||"TBD",ft[1]||"TBD",fd,"Jul 19");
-  var W=130,C=12;
-  function col(lbl,content,w){return'<div class="scol" style="width:'+w+'px"><div class="shdr">'+lbl+"</div>"+content+"</div>";}
-  function cline(n,side){var out='<div style="width:'+C+'px;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-around;padding:20px 0">';for(var i=0;i<n;i++)out+='<div style="flex:1;border-'+side+':1px solid #30363D"></div>';return out+"</div>";}
-  var keyHTML='<div style="width:95px;flex-shrink:0;padding:0 0 0 10px"><div style="font-size:9px;font-weight:700;color:#F5C842;margin-bottom:5px">KEY</div>';
-  Object.keys(ADULT).forEach(function(api){
-    var info=ADULT[api];
-    var s=std[api];
-    keyHTML+='<div style="font-size:8px;margin-bottom:1px;opacity:'+(s&&s.eliminated?0.4:1)+'">'+info.fl+" <b>"+info.p+"</b>"+(s&&s.eliminated?" X":"")+"</div>";
-  });
-  keyHTML+="</div>";
-  document.getElementById("bkt").innerHTML=
-    col("R32",gap(lR32,4),W)+cline(8,"right")+col("R16",gap(lR16,36),W)+cline(4,"right")+col("QF",gap(lQF,115),W)+cline(2,"right")+
-    '<div class="scol" style="width:'+W+'px"><div class="shdr">SF</div><div style="flex:1;display:flex;align-items:center">'+lSF+"</div></div>"+
-    '<div style="width:'+C+'px;flex-shrink:0;border-right:1px solid #30363D"></div>'+
-    '<div style="width:145px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8px;text-align:center">'+
-    '<div style="font-size:42px">&#127942;</div>'+
-    '<div style="font-size:18px;font-weight:800;color:#F5C842;letter-spacing:3px;text-transform:uppercase;margin:4px 0 2px">Final</div>'+
-    '<div style="font-size:9px;color:#8B949E;margin-bottom:8px">19 July &middot; New Jersey</div>'+finH+"</div>"+
-    '<div style="width:'+C+'px;flex-shrink:0;border-left:1px solid #30363D"></div>'+
-    '<div class="scol" style="width:'+W+'px"><div class="shdr">SF</div><div style="flex:1;display:flex;align-items:center">'+rSF+"</div></div>"+
-    cline(2,"left")+col("QF",gap(rQF,115),W)+cline(4,"left")+col("R16",gap(rR16,36),W)+cline(8,"left")+col("R32",gap(rR32,4),W)+keyHTML;
+
+  // Each match box is approx 72px tall
+  // R32: 8 matches per side, stacked with 4px gap = 8*72 + 7*4 = 604px total
+  // R16: 4 matches, each centred between 2 R32 = every 152px
+  // QF: 2 matches, each centred between 2 R16 = every 304px  
+  // SF: 1 match centred between 2 QF = 304px from top
+  var MH = 72; // match height
+  var GAP = 6; // gap between matches
+  var UNIT = MH + GAP; // 78px per slot
+
+  function mboxH(home,away,data,dateStr,sched){
+    return mbox(home,away,data,dateStr,sched);
+  }
+
+  // Build left and right columns as absolutely positioned elements
+  function buildCol(ms, startOffsets, width) {
+    var html = '<div style="position:relative;width:'+width+'px;flex-shrink:0">';
+    for(var i=0;i<ms.length;i++){
+      html += '<div style="position:absolute;top:'+startOffsets[i]+'px;left:0;right:0">';
+      html += ms[i];
+      html += '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  // Calculate vertical offsets so each match centres between its feeders
+  // R32 offsets: 0, 78, 156, 234, 312, 390, 468, 546
+  var r32Offsets = [];
+  for(var i=0;i<8;i++) r32Offsets.push(i * UNIT);
+  var totalH = 8 * MH + 7 * GAP; // 604px
+
+  // R16 offsets: centre of each pair of R32
+  var r16Offsets = [];
+  for(var i=0;i<4;i++){
+    var top = r32Offsets[i*2];
+    var bot = r32Offsets[i*2+1] + MH;
+    r16Offsets.push(Math.round((top + bot - MH) / 2));
+  }
+
+  // QF offsets: centre of each pair of R16
+  var qfOffsets = [];
+  for(var i=0;i<2;i++){
+    var top = r16Offsets[i*2];
+    var bot = r16Offsets[i*2+1] + MH;
+    qfOffsets.push(Math.round((top + bot - MH) / 2));
+  }
+
+  // SF offset: centre of both QF
+  var sfTop = qfOffsets[0];
+  var sfBot = qfOffsets[1] + MH;
+  var sfOffset = Math.round((sfTop + sfBot - MH) / 2);
+
+  // Final offset matches SF
+  var finalOffset = sfOffset;
+
+  // Build match arrays
+  var lR32 = r32d.slice(0,8).map(function(m){return mboxH(m.h,m.a,m.data,m.dt,null);});
+  var lR16 = r16t.slice(0,4).map(function(t,i){return mboxH(t[0]||"TBD",t[1]||"TBD",r16d[i],null,r16sched[i]);});
+  var lQF  = qft.slice(0,2).map(function(t,i){return mboxH(t[0]||"TBD",t[1]||"TBD",qfd[i],null,qfsched[i]);});
+  var lSF  = mboxH(sft[0][0]||"TBD",sft[0][1]||"TBD",sfd[0],null,sfsched[0]);
+
+  var rR32 = r32d.slice(8).map(function(m){return mboxH(m.h,m.a,m.data,m.dt,null);});
+  var rR16 = r16t.slice(4).map(function(t,i){return mboxH(t[0]||"TBD",t[1]||"TBD",r16d[i+4],null,r16sched[i+4]);});
+  var rQF  = qft.slice(2).map(function(t,i){return mboxH(t[0]||"TBD",t[1]||"TBD",qfd[i+2],null,qfsched[i+2]);});
+  var rSF  = mboxH(sft[1][0]||"TBD",sft[1][1]||"TBD",sfd[1],null,sfsched[1]);
+  var finH = mboxH(ft[0]||"TBD",ft[1]||"TBD",fd,null,null);
+
+  var W = 135; // column width
+  var C = 16;  // connector width
+
+  // Connector SVG between columns
+  function connector(fromOffsets, toOffsets, dir, h){
+    var svg = '<svg style="position:absolute;top:0;left:0;width:100%;height:'+h+'px;overflow:visible" xmlns="http://www.w3.org/2000/svg">';
+    var w = C;
+    for(var i=0;i<toOffsets.length;i++){
+      var y1a = fromOffsets[i*2] + MH/2;
+      var y1b = fromOffsets[i*2+1] + MH/2;
+      var y2  = toOffsets[i] + MH/2;
+      if(dir==="right"){
+        // lines go right: from right edge of left col to left edge of right col
+        svg += '<line x1="0" y1="'+y1a+'" x2="'+w/2+'" y2="'+y1a+'" stroke="#30363D" stroke-width="1"/>';
+        svg += '<line x1="0" y1="'+y1b+'" x2="'+w/2+'" y2="'+y1b+'" stroke="#30363D" stroke-width="1"/>';
+        svg += '<line x1="'+w/2+'" y1="'+y1a+'" x2="'+w/2+'" y2="'+y1b+'" stroke="#30363D" stroke-width="1"/>';
+        svg += '<line x1="'+w/2+'" y1="'+y2+'" x2="'+w+'" y2="'+y2+'" stroke="#30363D" stroke-width="1"/>';
+      } else {
+        // lines go left
+        svg += '<line x1="'+w+'" y1="'+y1a+'" x2="'+w/2+'" y2="'+y1a+'" stroke="#30363D" stroke-width="1"/>';
+        svg += '<line x1="'+w+'" y1="'+y1b+'" x2="'+w/2+'" y2="'+y1b+'" stroke="#30363D" stroke-width="1"/>';
+        svg += '<line x1="'+w/2+'" y1="'+y1a+'" x2="'+w/2+'" y2="'+y1b+'" stroke="#30363D" stroke-width="1"/>';
+        svg += '<line x1="'+w/2+'" y1="'+y2+'" x2="0" y2="'+y2+'" stroke="#30363D" stroke-width="1"/>';
+      }
+    }
+    svg += '</svg>';
+    return svg;
+  }
+
+  function connDiv(fromOf, toOf, dir, h){
+    var div = '<div style="width:'+C+'px;flex-shrink:0;position:relative;height:'+h+'px">';
+    div += connector(fromOf, toOf, dir, h);
+    div += '</div>';
+    return div;
+  }
+
+  // Simple bracket connector using borders (more reliable than SVG)
+  function bracketConn(fromOf, toOf, h, side){
+    var div = '<div style="width:'+C+'px;flex-shrink:0;position:relative">';
+    // For each pair, draw connecting lines
+    for(var i=0;i<toOf.length;i++){
+      var y1 = fromOf[i*2] + MH/2;
+      var y2 = fromOf[i*2+1] + MH/2;
+      var ym = toOf[i] + MH/2;
+      var borderSide = side==="right" ? "border-right" : "border-left";
+      // Top arm
+      div += '<div style="position:absolute;top:'+y1+'px;'+
+             (side==="right"?"left:0;right:50%":"left:50%;right:0")+
+             ';height:'+(y2-y1)+'px;'+borderSide+':1px solid #404040;border-top:1px solid #404040;border-bottom:1px solid #404040"></div>';
+      // Horizontal to match
+      div += '<div style="position:absolute;top:'+ym+'px;'+
+             (side==="right"?"left:50%;right:0":"left:0;right:50%")+
+             ';height:1px;background:#404040"></div>';
+    }
+    div += '</div>';
+    return div;
+  }
+
+  // Key
+  var keyHTML = '<div style="width:90px;flex-shrink:0;padding:0 0 0 8px;position:relative">';
+  keyHTML += '<div style="font-size:9px;font-weight:700;color:#F5C842;margin-bottom:5px;text-transform:uppercase;letter-spacing:1px">Key</div>';
+  var adultKeys = Object.keys(ADULT);
+  for(var ki=0;ki<adultKeys.length;ki++){
+    var api=adultKeys[ki],info=ADULT[api],s=std[api];
+    keyHTML += '<div style="font-size:8px;margin-bottom:2px;display:flex;align-items:center;gap:3px;opacity:'+(s&&s.eliminated?0.4:1)+'">';
+    keyHTML += '<span>'+info.fl+'</span><span style="font-weight:700;color:'+(s&&s.eliminated?"#F85149":"#F5C842")+'">'+info.p+'</span>';
+    if(s&&s.eliminated) keyHTML += '<span style="color:#F85149;font-size:7px">OUT</span>';
+    keyHTML += '</div>';
+  }
+  keyHTML += '</div>';
+
+  // Assemble the bracket
+  var bkt = document.getElementById("bkt");
+  bkt.style.height = totalH + "px";
+  bkt.style.alignItems = "flex-start";
+  bkt.style.minWidth = (W*7 + C*6 + 90 + 16) + "px";
+
+  var html = "";
+
+  // LEFT R32
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">R32</div>';
+  for(var i=0;i<lR32.length;i++){
+    html += '<div style="position:absolute;top:'+r32Offsets[i]+'px;left:0;right:0">'+lR32[i]+'</div>';
+  }
+  html += '</div>';
+
+  // CONNECTOR L R32->R16
+  html += bracketConn(r32Offsets, r16Offsets, totalH, "right");
+
+  // LEFT R16
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">R16</div>';
+  for(var i=0;i<lR16.length;i++){
+    html += '<div style="position:absolute;top:'+r16Offsets[i]+'px;left:0;right:0">'+lR16[i]+'</div>';
+  }
+  html += '</div>';
+
+  // CONNECTOR L R16->QF
+  html += bracketConn(r16Offsets, qfOffsets, totalH, "right");
+
+  // LEFT QF
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">QF</div>';
+  for(var i=0;i<lQF.length;i++){
+    html += '<div style="position:absolute;top:'+qfOffsets[i]+'px;left:0;right:0">'+lQF[i]+'</div>';
+  }
+  html += '</div>';
+
+  // CONNECTOR L QF->SF
+  html += bracketConn(qfOffsets, [sfOffset], totalH, "right");
+
+  // LEFT SF
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">SF</div>';
+  html += '<div style="position:absolute;top:'+sfOffset+'px;left:0;right:0">'+lSF+'</div>';
+  html += '</div>';
+
+  // CONNECTOR L SF->FINAL
+  html += '<div style="width:'+C+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="position:absolute;top:'+(sfOffset+MH/2)+'px;left:0;right:0;height:1px;background:#404040"></div>';
+  html += '</div>';
+
+  // FINAL + TROPHY
+  html += '<div style="width:150px;flex-shrink:0;position:relative;height:'+totalH+'px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 6px">';
+  html += '<div style="font-size:42px;text-align:center">&#127942;</div>';
+  html += '<div style="font-size:16px;font-weight:800;color:#F5C842;letter-spacing:3px;text-transform:uppercase;text-align:center;margin:4px 0 2px">Final</div>';
+  html += '<div style="font-size:9px;color:#8B949E;text-align:center;margin-bottom:8px">19 July &middot; New Jersey</div>';
+  html += finH;
+  html += '</div>';
+
+  // CONNECTOR R FINAL->SF
+  html += '<div style="width:'+C+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="position:absolute;top:'+(sfOffset+MH/2)+'px;left:0;right:0;height:1px;background:#404040"></div>';
+  html += '</div>';
+
+  // RIGHT SF
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">SF</div>';
+  html += '<div style="position:absolute;top:'+sfOffset+'px;left:0;right:0">'+rSF+'</div>';
+  html += '</div>';
+
+  // CONNECTOR R SF->QF
+  html += bracketConn(qfOffsets, [sfOffset], totalH, "left");
+
+  // RIGHT QF
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">QF</div>';
+  for(var i=0;i<rQF.length;i++){
+    html += '<div style="position:absolute;top:'+qfOffsets[i]+'px;left:0;right:0">'+rQF[i]+'</div>';
+  }
+  html += '</div>';
+
+  // CONNECTOR R QF->R16
+  html += bracketConn(r16Offsets.slice(4), qfOffsets, totalH, "left");
+
+  // RIGHT R16
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">R16</div>';
+  for(var i=0;i<rR16.length;i++){
+    html += '<div style="position:absolute;top:'+r16Offsets[i+4]+'px;left:0;right:0">'+rR16[i]+'</div>';
+  }
+  html += '</div>';
+
+  // CONNECTOR R R16->R32
+  html += bracketConn(r32Offsets, r16Offsets.slice(4), totalH, "left");
+
+  // RIGHT R32
+  html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
+  html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">R32</div>';
+  for(var i=0;i<rR32.length;i++){
+    html += '<div style="position:absolute;top:'+r32Offsets[i]+'px;left:0;right:0">'+rR32[i]+'</div>';
+  }
+  html += '</div>';
+
+  // KEY
+  html += keyHTML;
+
+  bkt.innerHTML = html;
+
 }
-function pill(s){
-  if(!s)return '<span class="sp spg">Group Stage</span>';
-  if(s.eliminated)return '<span class="sp spo">OUT: '+s.stage+"</span>";
-  var c={1:"spg",2:"sp2",3:"sp3",4:"sp4",5:"sp5",6:"sp6",7:"sp6"}[s.stageOrder]||"spg";
-  return '<span class="sp '+c+'">'+s.stage+"</span>";
-}
+
 function renderTeams(){
   var html="";
   Object.keys(ADULT).forEach(function(api){
