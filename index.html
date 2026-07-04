@@ -534,13 +534,13 @@ function renderBracket(){
   html += '</div>';
 
   // CONNECTOR R QF->R16
-  html += bracketConn(r16Offsets.slice(4), qfOffsets, totalH, "left");
+  html += bracketConn(r16Offsets, qfOffsets, totalH, "left");
 
   // RIGHT R16
   html += '<div style="width:'+W+'px;flex-shrink:0;position:relative;height:'+totalH+'px">';
   html += '<div style="font-size:9px;font-weight:700;color:#0D9B88;text-align:center;padding:2px 4px;background:#1C2330;border-radius:4px;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">R16</div>';
   for(var i=0;i<rR16.length;i++){
-    html += '<div style="position:absolute;top:'+r16Offsets[i+4]+'px;left:0;right:0">'+rR16[i]+'</div>';
+    html += '<div style="position:absolute;top:'+r16Offsets[i]+'px;left:0;right:0">'+rR16[i]+'</div>';
   }
   html += '</div>';
 
