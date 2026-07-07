@@ -134,7 +134,7 @@ var matches=[],scorers=[],std={};
 // Teams eliminated in GROUP STAGE only (R32+ eliminations auto-detected)
 var GROUP_ELIM = [
   // Adult teams
-  "Turkey",
+  "Turkey","Uruguay",
   // Family teams - group stage only
   "Iran","Qatar","Uzbekistan","Iraq","South Korea","Panama","Saudi Arabia","Tunisia","Haiti","Czechia","Scotland","Jordan"
 ];
@@ -606,8 +606,8 @@ function renderPrizes(){
   P.push({e:"&#128640;",n:"First Goal",pot:"&#163;10",w:"KP - Mexico",c:true});
   var top18=Object.keys(ADULT);
   var famSet=[];Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){famSet.push(t.a);});});
-  var bestF=null,bestO=0;
-  Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){var s=std[t.a];if(s&&s.stageOrder>bestO&&s.stageOrder>1){bestO=s.stageOrder;bestF="Family "+f+" - "+t.fl+" "+t.d+" ("+s.stage+")";}});});
+  var bestF=null,bestO=0,bestElim=true;
+  Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){var s=std[t.a];if(!s||s.stageOrder<=1)return;var better=false;if(s.stageOrder>bestO)better=true;else if(s.stageOrder===bestO&&bestElim&&!s.eliminated)better=true;if(better){bestO=s.stageOrder;bestElim=s.eliminated||false;bestF="Family "+f+" - "+t.fl+" "+t.d+" ("+s.stage+")";}});});
   var giant=null;
   var stages=["LAST_32","LAST_16","QUARTER_FINALS","SEMI_FINALS","FINAL","GROUP_STAGE"];
   for(var si=0;si<stages.length&&!giant;si++){
