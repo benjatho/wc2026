@@ -606,8 +606,8 @@ function renderPrizes(){
   P.push({e:"&#128640;",n:"First Goal",pot:"&#163;10",w:"KP - Mexico",c:true});
   var top18=Object.keys(ADULT);
   var famSet=[];Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){famSet.push(t.a);});});
-  var bestF=null,bestO=0,bestElim=true;
-  Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){var s=std[t.a];if(!s||s.stageOrder<=1)return;var better=false;if(s.stageOrder>bestO)better=true;else if(s.stageOrder===bestO&&bestElim&&!s.eliminated)better=true;if(better){bestO=s.stageOrder;bestElim=s.eliminated||false;bestF="Family "+f+" - "+t.fl+" "+t.d+" ("+s.stage+")";}});});
+    var bestF=null,bestT=null;
+  Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){var s=std[t.a];if(!s||s.stageOrder<=1)return;var better=false;if(!bestT){better=true;}else if(s.stageOrder>bestT.stageOrder){better=true;}else if(s.stageOrder===bestT.stageOrder){if(!s.eliminated&&bestT.eliminated){better=true;}else if(s.eliminated===bestT.eliminated){if(s.goals>bestT.goals){better=true;}else if(s.goals===bestT.goals&&(s.goals-s.conceded)>(bestT.goals-bestT.conceded)){better=true;}}}if(better){bestT=s;bestF="Family "+f+" - "+t.fl+" "+t.d+" ("+s.stage+")";}});});
   var giant=null;
   var stages=["LAST_32","LAST_16","QUARTER_FINALS","SEMI_FINALS","FINAL","GROUP_STAGE"];
   for(var si=0;si<stages.length&&!giant;si++){
