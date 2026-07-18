@@ -600,7 +600,7 @@ function renderPrizes(){
     var tG=scorers[0].goals;
     var td=scorers.filter(function(s){return s.goals===tG;});
     var gw=td.length===1?td[0].player.name+" - "+dsp(td[0].team.name)+" ("+tG+" goals)":"Tied: "+td.map(function(s){return s.player.name;}).join(", ")+" ("+tG+" goals)";
-    P.push({e:"&#128095;",n:"Golden Boot",pot:"&#163;10",w:gw,c:false});
+     P.push({e:"&#128095;",n:"Golden Boot",pot:"&#163;10",w:gw,c:!!fm});
   }else P.push({e:"&#128095;",n:"Golden Boot",pot:"&#163;10",w:null,c:false});
   P.push({e:"&#128556;",n:"Wooden Spoon",pot:"Forfeit",w:"TC - Japan (out: Round of 32)",c:true});
   P.push({e:"&#128640;",n:"First Goal",pot:"&#163;10",w:"KP - Mexico",c:true});
@@ -625,10 +625,12 @@ function renderPrizes(){
   }
   var mostF=null,mostG=0;
   Object.keys(FAM).forEach(function(f){var tot=FAM[f].reduce(function(s,t){return s+(std[t.a]?std[t.a].goals:0);},0);if(tot>mostG){mostG=tot;mostF="Family "+f+" ("+tot+" goals)";}});
+    var famDone=true;
+  Object.keys(FAM).forEach(function(f){FAM[f].forEach(function(t){var s=std[t.a];if(!s||!s.eliminated)famDone=false;});});
   var FP=[
-    {e:"&#127941;",n:"Best of the Rest",pot:"&#163;40",w:bestF,c:false},
-    {e:"&#129327;",n:"Giant Killer",pot:"&#163;20",w:giant,c:false},
-    {e:"&#127919;",n:"Most Goals",pot:"&#163;10",w:mostG>0?mostF:null,c:false}
+    {e:"&#127941;",n:"Best of the Rest",pot:"&#163;40",w:bestF,c:famDone&&!!bestF},
+    {e:"&#129327;",n:"Giant Killer",pot:"&#163;20",w:giant,c:!!giant},
+    {e:"&#127919;",n:"Most Goals",pot:"&#163;10",w:mostG>0?mostF:null,c:famDone&&mostG>0}
   ];
   function pc(p){
     var cl=p.c?"cf":p.w?"ld":"";
